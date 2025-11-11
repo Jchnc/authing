@@ -173,10 +173,10 @@ npx prisma generate
 
 ## Planned Features
 
-- [ ] Email Verification — Send confirmation link
+- [x] Email Verification — Send confirmation link
 - [ ] Rate Limiting — Protect endpoints against spamming
 - [ ] Activity Logging — Track login/logout timestamps + IP
-- [ ] Password Reset — Token-based reset via email
+- [x] Password Reset — Token-based reset via email
 - [ ] Config Manager — Centralize app settings in DB/config service
 - [ ] Session Management — List & store active refresh tokens per user
 - [ ] Account Lockout — Block user after X amount of failed login attempts

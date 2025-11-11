@@ -1,11 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService, type JwtSignOptions } from '@nestjs/jwt';
-import { UsersService } from 'src/users/users.service';
 import { ConfigService } from '@nestjs/config';
-import { RegisterUserDto } from './dto/register.dto';
+import { JwtService, type JwtSignOptions } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { MailService } from 'src/mail/mail.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { UsersService } from 'src/users/users.service';
 import { LoginDto } from './dto/login.dto';
+import { RegisterUserDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +20,7 @@ export class AuthService {
     private readonly UsersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
+    private readonly mailService: MailService,
   ) {
     this.refreshTokenExpiresIn = this.config.get<string>('JWT_REFRESH_EXPIRES_IN', '7d');
     this.jwtAccessExpiresIn = this.config.get<string>('JWT_EXPIRES_IN', '15m');
@@ -109,6 +111,156 @@ export class AuthService {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
     };
+  }
+
+  async sendVerificationEmail(userId: string, email: string, firstName: string) {
+    const payload = {
+      sub: userId,
+      firstName,
+      email,
+    };
+    const token = await this.jwtService.signAsync(payload, {
+      secret: this.config.get<string>('JWT_VERIFY_EMAIL_SECRET'),
+      expiresIn: this.config.get<string>(
+        'JWT_VERIFY_EMAIL_EXPIRES_IN',
+        '1h',
+      ) as JwtSignOptions['expiresIn'],
+    });
+    const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:5173');
+    const link = `${frontendUrl}/verify-email?token=${token}`;
+    await this.mailService.sendVerification(email, link, firstName);
+  }
+
+  async verifyEmail(token: string) {
+    try {
+      const decoded = await this.jwtService.verifyAsync<{
+        sub: string;
+        email: string;
+        firstName: string;
+      }>(token, {
+        secret: this.config.get<string>('JWT_VERIFY_EMAIL_SECRET'),
+      });
+
+      const user = await this.UsersService.findOne(decoded.sub);
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      if (user.verified) {
+        return { message: 'Email already verified', email: decoded.email };
+      }
+
+      await this.UsersService.updateInternal(decoded.sub, {
+        verified: true,
+      });
+
+      return { message: 'Email verified successfully', email: decoded.email };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new UnauthorizedException('Invalid or expired token');
+    }
+  }
+
+  async sendResetPasswordEmail(email: string) {
+    const user = await this.UsersService.findByEmail(email);
+    if (!user) throw new UnauthorizedException('Invalid email');
+
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      type: 'reset-password',
+    };
+
+    const token = await this.jwtService.signAsync(payload, {
+      secret: this.config.get<string>('JWT_RESET_PASSWORD_SECRET'),
+      expiresIn: this.config.get<string>(
+        'JWT_RESET_PASSWORD_EXPIRES_IN',
+        '1h',
+      ) as JwtSignOptions['expiresIn'],
+    });
+
+    const hashedToken = await bcrypt.hash(token, this.bcryptRounds);
+    const expiresIn = this.config.get<string>('JWT_RESET_PASSWORD_EXPIRES_IN', '1h');
+    const expiryDate = new Date();
+
+    if (expiresIn.endsWith('h')) {
+      expiryDate.setHours(expiryDate.getHours() + parseInt(expiresIn));
+    } else if (expiresIn.endsWith('m')) {
+      expiryDate.setMinutes(expiryDate.getMinutes() + parseInt(expiresIn));
+    } else if (expiresIn.endsWith('d')) {
+      expiryDate.setDate(expiryDate.getDate() + parseInt(expiresIn));
+    } else {
+      expiryDate.setHours(expiryDate.getHours() + 1);
+    }
+
+    await this.UsersService.updateInternal(user.id, {
+      passwordResetToken: hashedToken,
+      passwordResetExpiry: expiryDate,
+    });
+
+    const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:5173');
+    const link = `${frontendUrl}/reset-password?token=${token}`;
+    await this.mailService.sendResetPassword(email, link);
+
+    return { success: true, message: 'Password reset email sent' };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    try {
+      const decoded = await this.jwtService.verifyAsync<{
+        sub: string;
+        email: string;
+        type: string;
+      }>(token, {
+        secret: this.config.get<string>('JWT_RESET_PASSWORD_SECRET'),
+      });
+
+      if (decoded.type !== 'reset-password') {
+        throw new UnauthorizedException('Invalid token type');
+      }
+
+      const user = await this.UsersService.findByEmail(decoded.email);
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      if (!user.passwordResetToken || !user.passwordResetExpiry) {
+        throw new UnauthorizedException('No password reset request found');
+      }
+
+      if (new Date() > user.passwordResetExpiry) {
+        await this.UsersService.updateInternal(user.id, {
+          passwordResetToken: null,
+          passwordResetExpiry: null,
+        });
+        throw new UnauthorizedException('Reset token has expired');
+      }
+
+      const isValidToken = await bcrypt.compare(token, user.passwordResetToken);
+      if (!isValidToken) {
+        throw new UnauthorizedException('Invalid reset token');
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, this.bcryptRounds);
+
+      await this.UsersService.updateInternal(user.id, {
+        password: hashedPassword,
+        passwordResetToken: null,
+        passwordResetExpiry: null,
+        hashedRefreshToken: null,
+      });
+
+      return { success: true, message: 'Password reset successfully' };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      const errorMessage =
+        error instanceof Error ? error.message : 'Invalid or expired reset token';
+      throw new UnauthorizedException(errorMessage);
+    }
   }
 
   private async getTokens(

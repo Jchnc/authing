@@ -66,13 +66,10 @@ export class UsersService {
     return this.toResponseDto(user);
   }
 
-  async findByEmail(email: string): Promise<UserResponseDto> {
-    const user = await this.prisma.user.findUniqueOrThrow({
+  async findByEmail(email: string) {
+    return await this.prisma.user.findUnique({
       where: { email: email.toLowerCase().trim() },
-      select: this.userSelectFields,
     });
-
-    return this.toResponseDto(user);
   }
 
   async findByEmailWithPassword(email: string) {
@@ -165,6 +162,22 @@ export class UsersService {
 
     if (updateDto.hashedRefreshToken !== undefined) {
       data.hashedRefreshToken = updateDto.hashedRefreshToken;
+    }
+
+    if (updateDto.verified !== undefined) {
+      data.verified = updateDto.verified;
+    }
+
+    if (updateDto.password !== undefined) {
+      data.password = updateDto.password;
+    }
+
+    if (updateDto.passwordResetToken !== undefined) {
+      data.passwordResetToken = updateDto.passwordResetToken;
+    }
+
+    if (updateDto.passwordResetExpiry !== undefined) {
+      data.passwordResetExpiry = updateDto.passwordResetExpiry;
     }
 
     await this.prisma.user.update({

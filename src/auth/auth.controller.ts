@@ -12,24 +12,28 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
-  ApiTags,
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiResponse,
-  ApiBearerAuth,
+  ApiTags,
   ApiUnauthorizedResponse,
-  ApiBadRequestResponse,
-  ApiOkResponse,
-  ApiCreatedResponse,
 } from '@nestjs/swagger';
-import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
-import { RegisterUserDto } from './dto/register.dto';
-import { JwtAuthGuard } from './jwt-auth.guard';
-import { RefreshDto } from './dto/refresh.dto';
 import { Public } from './decorators/public.decorator';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { LoginDto } from './dto/login.dto';
+import { RefreshDto } from './dto/refresh.dto';
+import { RegisterUserDto } from './dto/register.dto';
+import { SendVerificationEmailDto } from './dto/send-verification-email.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @ApiTags('auth')
 @UseGuards(JwtAuthGuard)
@@ -213,5 +217,99 @@ export class AuthController {
   me(@Req() req: Request & { user?: { sub: string } }) {
     const user = req.user;
     return user;
+  }
+
+  @Public()
+  @Post('send-verification-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '(Sends email) Send email verification link',
+    description:
+      'Sends a verification email to the user with a link to verify their email address. The email contains a link that redirects to the frontend with a JWT token that expires in 1 hour. The frontend should extract the token and call POST /auth/verify-email. This can be used for initial verification or to resend the verification email.',
+  })
+  @ApiOkResponse({
+    description: 'Verification email sent successfully',
+    schema: {
+      example: {
+        success: true,
+        message: 'Verification email sent',
+      },
+    },
+  })
+  @ApiBadRequestResponse({ description: 'Invalid input data' })
+  @ApiUnauthorizedResponse({ description: 'User not found' })
+  async sendVerificationEmail(@Body() dto: SendVerificationEmailDto) {
+    await this.auth.sendVerificationEmail(dto.userId, dto.email, dto.firstName);
+    return { success: true, message: 'Verification email sent' };
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '(Sends email) Request password reset link',
+    description:
+      'Sends a password reset email to the user with a link to reset their password. The email contains a link that redirects to the frontend with a JWT token that expires in 1 hour. The frontend should show a password reset form and call POST /auth/reset-password with the token and new password. The token can only be used once.',
+  })
+  @ApiOkResponse({
+    description: 'Password reset email sent successfully',
+    schema: {
+      example: {
+        success: true,
+        message: 'Password reset email sent',
+      },
+    },
+  })
+  @ApiBadRequestResponse({ description: 'Invalid input data or missing email' })
+  @ApiUnauthorizedResponse({ description: 'Email not found' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    await this.auth.sendResetPasswordEmail(dto.email);
+    return { success: true, message: 'Password reset email sent' };
+  }
+
+  @Public()
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Verify email with token',
+    description:
+      'Verifies a user email address using the JWT token received via email. The frontend extracts the token from the email link and sends it to this endpoint. The token is validated and the user account is marked as verified. This endpoint is called by the frontend after the user clicks the verification link in their email.',
+  })
+  @ApiOkResponse({
+    description: 'Email successfully verified',
+    schema: {
+      example: {
+        message: 'Email verified successfully',
+        email: 'john.doe@example.com',
+      },
+    },
+  })
+  @ApiBadRequestResponse({ description: 'Invalid input data' })
+  @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
+  async verifyEmail(@Body() dto: VerifyEmailDto) {
+    return await this.auth.verifyEmail(dto.token);
+  }
+
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Reset password with token',
+    description:
+      'Resets the user password using the JWT token received via email and the new password. The frontend extracts the token from the email link, shows a password reset form, and sends both the token and new password to this endpoint. The token is validated and can only be used once. After successful reset, all user sessions are invalidated.',
+  })
+  @ApiOkResponse({
+    description: 'Password successfully reset',
+    schema: {
+      example: {
+        success: true,
+        message: 'Password reset successfully',
+      },
+    },
+  })
+  @ApiBadRequestResponse({ description: 'Invalid input data' })
+  @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return await this.auth.resetPassword(dto.token, dto.newPassword);
   }
 }
