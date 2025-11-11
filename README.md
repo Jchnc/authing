@@ -33,7 +33,7 @@ Authentication and user management API built with NestJS, Prisma, and JWT.
 
 ## Step 1: Clone the repository
 ```bash
-git clone https://github.com/authing/authing-api-demo.git
+git clone https://github.com/Jchnc/authing.git
 ```
 ## Step 2: Install dependencies
 
