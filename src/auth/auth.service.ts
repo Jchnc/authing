@@ -80,7 +80,7 @@ export class AuthService {
   }
 
   async logout(userId: string) {
-    await this.UsersService.update(userId, { hashedRefreshToken: null });
+    await this.UsersService.updateInternal(userId, { hashedRefreshToken: null });
     return { success: true };
   }
 
@@ -92,7 +92,7 @@ export class AuthService {
 
     const isValid = await bcrypt.compare(refreshToken, user.hashedRefreshToken);
     if (!isValid) {
-      await this.UsersService.update(userId, { hashedRefreshToken: null });
+      await this.UsersService.updateInternal(userId, { hashedRefreshToken: null });
       throw new UnauthorizedException('Refresh token invalid');
     }
 
@@ -140,6 +140,6 @@ export class AuthService {
 
   private async saveHashedRefreshToken(userId: string, refreshToken: string) {
     const hashed = await bcrypt.hash(refreshToken, this.bcryptRounds);
-    await this.UsersService.update(userId, { hashedRefreshToken: hashed });
+    await this.UsersService.updateInternal(userId, { hashedRefreshToken: hashed });
   }
 }

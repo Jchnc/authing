@@ -5,6 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma, Role } from '../generated/prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserInternalDto } from './dto/update-user-internal.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 
 @Injectable()
@@ -144,10 +145,6 @@ export class UsersService {
       ...(passwordToUpdate && { password: passwordToUpdate }),
     };
 
-    if (updateUserDto.hashedRefreshToken !== undefined) {
-      data.hashedRefreshToken = updateUserDto.hashedRefreshToken;
-    }
-
     Object.keys(data).forEach((key) => {
       if (data[key] === undefined) {
         delete data[key];
@@ -161,6 +158,19 @@ export class UsersService {
     });
 
     return this.toResponseDto(updatedUser);
+  }
+
+  async updateInternal(id: string, updateDto: UpdateUserInternalDto): Promise<void> {
+    const data: Prisma.UserUpdateInput = {};
+
+    if (updateDto.hashedRefreshToken !== undefined) {
+      data.hashedRefreshToken = updateDto.hashedRefreshToken;
+    }
+
+    await this.prisma.user.update({
+      where: { id },
+      data,
+    });
   }
 
   async delete(id: string): Promise<void> {
