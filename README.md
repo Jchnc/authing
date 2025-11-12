@@ -174,7 +174,7 @@ npx prisma generate
 ## Planned Features
 
 - [x] Email Verification — Send confirmation link
-- [ ] Rate Limiting — Protect endpoints against spamming
+- [x] Rate Limiting — Protect endpoints against spamming
 - [ ] Activity Logging — Track login/logout timestamps + IP
 - [x] Password Reset — Token-based reset via email
 - [ ] Config Manager — Centralize app settings in DB/config service
