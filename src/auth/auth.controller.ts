@@ -34,9 +34,11 @@ import { SendVerificationEmailDto } from './dto/send-verification-email.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { UserIpThrottlerGuard } from 'src/common/guards/user-ip-throttler.guard';
+import { Throttle, seconds } from '@nestjs/throttler';
 
 @ApiTags('auth')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, UserIpThrottlerGuard)
 @Controller('auth')
 export class AuthController {
   private readonly nodeEnv: string;
@@ -220,6 +222,20 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({
+    short: {
+      limit: 2,
+      ttl: seconds(60),
+    },
+    medium: {
+      limit: 3,
+      ttl: seconds(600),
+    },
+    long: {
+      limit: 6,
+      ttl: seconds(3600),
+    },
+  })
   @Post('send-verification-email')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -244,6 +260,20 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({
+    short: {
+      limit: 2,
+      ttl: seconds(60),
+    },
+    medium: {
+      limit: 3,
+      ttl: seconds(600),
+    },
+    long: {
+      limit: 6,
+      ttl: seconds(3600),
+    },
+  })
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
