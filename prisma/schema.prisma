@@ -29,6 +29,24 @@ model User {
   lastLoginAt           DateTime?
   passwordResetToken    String?
   passwordResetExpiry   DateTime?
+  twoFactorEnabled      Boolean   @default(false)
+}
+
+model TwoFactorCode {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int
+}
+
+model TrustedDevice {
+  id        String   @id @default(uuid())
+  userId    String 
+  deviceTokenHash  String
+  userAgent  String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
 }
 
 enum Role {

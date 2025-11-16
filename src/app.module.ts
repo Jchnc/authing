@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserIpThrottlerGuard } from './common/guards/user-ip-throttler.guard';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
+import { TwoFAModule } from './twofa/twofa.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { UsersModule } from './users/users.module';
     PrismaModule,
     UsersModule,
     AuthModule,
+    TwoFAModule,
   ],
   controllers: [AppController],
   providers: [

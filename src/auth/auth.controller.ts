@@ -36,6 +36,7 @@ import { VerifyEmailDto } from './dto/verify-email.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { UserIpThrottlerGuard } from 'src/common/guards/user-ip-throttler.guard';
 import { Throttle, seconds } from '@nestjs/throttler';
+import { TwoFAGuard } from 'src/twofa/guards/twofa.guard';
 
 @ApiTags('auth')
 @UseGuards(JwtAuthGuard, UserIpThrottlerGuard)
@@ -198,10 +199,11 @@ export class AuthController {
 
   @Get('me')
   @ApiBearerAuth('JWT-auth')
+  @UseGuards(TwoFAGuard)
   @ApiOperation({
     summary: 'Get current user',
     description:
-      'Returns the authenticated user information from the JWT token. Requires valid access token.',
+      'Returns the authenticated user information from the JWT token. Requires valid access token and 2FA verification (if enabled by user).',
   })
   @ApiOkResponse({
     description: 'Current user information',

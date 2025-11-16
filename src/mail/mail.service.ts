@@ -72,4 +72,20 @@ export class MailService {
     });
     return this.sendMail(email, 'Reset your password', html);
   }
+
+  async sendTwofa(email: string, code: string): Promise<void> {
+    const html = loadTemplate('twofa.html', {
+      code,
+      expiryTime: '5',
+      currentYear: new Date().getFullYear().toString(),
+      companyName: this.config.get<string>('COMPANY_NAME', 'Our Company'),
+      companyAddress: this.config.get<string>('COMPANY_ADDRESS', ''),
+      privacyPolicyUrl: this.config.get<string>('PRIVACY_POLICY_URL', '#'),
+      termsOfServiceUrl: this.config.get<string>('TERMS_OF_SERVICE_URL', '#'),
+      unsubscribeUrl: this.config.get<string>('UNSUBSCRIBE_URL', '#'),
+      supportEmail: this.config.get<string>('SUPPORT_EMAIL', this.fromEmail),
+      email,
+    });
+    return this.sendMail(email, 'Two-factor authentication', html);
+  }
 }

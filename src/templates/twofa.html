@@ -1,0 +1,134 @@
+<main
+  style="
+    margin: 0;
+    padding: 0;
+    font-family:
+      -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  "
+>
+  <table role="presentation" cellspacing="0" cellpadding="0" width="100%">
+    <tr>
+      <td align="center" style="padding: 20px 10px">
+        <table role="presentation" cellspacing="0" cellpadding="0" width="100%" max-width="600px">
+          <tr>
+            <td style="padding: 40px 30px">
+              <h1
+                style="
+                  margin: 0 0 20px 0;
+                  font-size: 24px;
+                  font-weight: 600;
+                  color: #111827;
+                  text-align: center;
+                "
+              >
+                Two-Factor Authentication Code
+              </h1>
+              <p
+                style="
+                  margin: 0 0 30px 0;
+                  font-size: 16px;
+                  line-height: 1.5;
+                  color: #4b5563;
+                  text-align: center;
+                "
+              >
+                Your 6-digit verification code is below. Enter this code to complete your
+                authentication.
+              </p>
+
+              <div style="text-align: center; margin: 30px 0">
+                <div
+                  style="
+                    display: inline-block;
+                    padding: 24px 40px;
+                    background-color: #f9fafb;
+                    border: 2px dashed #d1d5db;
+                    border-radius: 8px;
+                    font-size: 32px;
+                    font-weight: 700;
+                    letter-spacing: 8px;
+                    color: #111827;
+                    font-family: monospace;
+                    text-align: center;
+                    min-width: 280px;
+                  "
+                >
+                  {{code}}
+                </div>
+              </div>
+
+              <p
+                style="
+                  margin: 25px 0 0 0;
+                  font-size: 14px;
+                  line-height: 1.5;
+                  color: #6b7280;
+                  text-align: center;
+                "
+              >
+                This code will expire in {{expiryTime}} minutes and can only be used once.
+              </p>
+
+              <p
+                style="
+                  margin: 30px 0 0 0;
+                  font-size: 13px;
+                  line-height: 1.5;
+                  color: #9ca3af;
+                  text-align: center;
+                "
+              >
+                If you didn’t request this code, please ignore this email.<br />
+                For security, don’t share this code with anyone.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Footer Metadata -->
+  <table
+    role="presentation"
+    cellspacing="0"
+    cellpadding="0"
+    width="100%"
+    style="
+      margin-top: 60px;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 24px;
+      color: #6b7280;
+      font-size: 12px;
+      line-height: 1.6;
+    "
+  >
+    <tr>
+      <td align="center" style="padding: 0 10px">
+        <p style="margin: 0 0 8px 0">© {{currentYear}} {{companyName}}. All rights reserved.</p>
+        <p style="margin: 0 0 8px 0">
+          <a
+            href="{{privacyPolicyUrl}}"
+            style="color: #3b82f6; text-decoration: none; margin: 0 8px"
+            >Privacy Policy</a
+          >
+          <a
+            href="{{termsOfServiceUrl}}"
+            style="color: #3b82f6; text-decoration: none; margin: 0 8px"
+            >Terms of Service</a
+          >
+          <a href="{{unsubscribeUrl}}" style="color: #3b82f6; text-decoration: none; margin: 0 8px"
+            >Unsubscribe</a
+          >
+        </p>
+        <p style="margin: 0 0 8px 0">{{companyAddress}}</p>
+        <p style="margin: 0">
+          This email was sent to {{email}} because a two-factor authentication request was made for
+          your account.
+          <a href="{{supportEmail}}" style="color: #3b82f6; text-decoration: none">Contact us</a> if
+          you didn’t request this.
+        </p>
+      </td>
+    </tr>
+  </table>
+</main>

@@ -37,10 +37,11 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { OwnerOrAdminGuard } from 'src/auth/guards/owner-or-admin.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { TwoFAGuard } from 'src/twofa/guards/twofa.guard';
 
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, TwoFAGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

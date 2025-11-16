@@ -12,7 +12,7 @@ export function setupSwagger(app: NestExpressApplication): void {
     .setDescription('Authentication and User Management API')
     .setVersion('1.0')
     .addTag('auth', 'Authentication endpoints')
-    .addTag('users', 'User management endpoints')
+    .addTag('users', 'User management endpoints (Requires 2FA if enabled by user)')
     .addServer('/api', 'API')
     .addBearerAuth(
       {

@@ -175,6 +175,7 @@ npx prisma generate
 
 - [x] Email Verification — Send confirmation link
 - [x] Rate Limiting — Protect endpoints against spamming
+- [x] 2FA — Two-factor authentication via email (OTP)
 - [ ] Activity Logging — Track login/logout timestamps + IP
 - [x] Password Reset — Token-based reset via email
 - [ ] Config Manager — Centralize app settings in DB/config service
