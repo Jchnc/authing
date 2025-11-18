@@ -1,177 +1,130 @@
 # Authing API
+<p align="left">
+  <img src="https://img.shields.io/badge/node-%3E=18.0.0-3c873a?style=for-the-badge&logo=node.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/NestJS-11-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" />
+  <img src="https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white" />
+  <img src="https://img.shields.io/badge/JWT-Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white" />
+  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge" />
+</p>
+Authentication and user management backend built with **NestJS**, **Prisma**, and **JWT**.
 
-Authentication and user management API built with NestJS, Prisma, and JWT.
+A flexible boilerplate that covers the core authentication flows while allowing you to customize and extend it based on your project’s needs.
 
-## Features
+------------------------------------------------------------------------
 
-- JWT authentication with access and refresh tokens
-  - Refresh tokens are stored in httpOnly cookies
-  - Access tokens are returned in the response body
-  - Refresh tokens are automatically rotated
-  - Refresh tokens can be used to generate new access tokens
-  - Refresh tokens are stored in the database
-- Role-based access control (USER, ADMIN, MANAGER, GUEST)
-- User registration (first user becomes ADMIN)
-- Password hashing with bcrypt
-- Swagger API documentation (development only)
+## Key Features
 
+-   **JWT Authentication**
+    -   Access tokens returned in response body
+    -   Refresh tokens stored in secure httpOnly cookies
+    -   Refresh token rotation + invalidation
+    -   Refresh tokens persisted in database
+-   **RBAC (Role-based Access Control)**
+    -   Roles: `ADMIN`, `MANAGER`, `USER`, `GUEST`
+    -   First registered user becomes `ADMIN`
+-   **User Lifecycle**
+    -   Registration
+    -   Email verification flow (email template included)
+    -   Password reset token flow (email template included)
+    -   Optional email-based OTP 2FA with trusted-device support (email template included)
+-   **Security**
+    -   bcrypt password hashing
+    -   Strict DTO validation
+    -   Session invalidation and logout mechanics
+-   **Developer Features**
+    -   Swagger (development only)
+    -   Prisma migrations & schema
+    -   Modular, extensible NestJS structure
 
-## Tech Stack
+------------------------------------------------------------------------
 
-- NestJS 11
-- MySQL with Prisma ORM
-- JWT authentication
-- class-validator & class-transformer
-- Swagger/OpenAPI
+## Quick Start
 
-## Prerequisites
-
-- Node.js 18+
-- MySQL 8+
-
-# Setup and Installation
-
-## Step 1: Clone the repository
-```bash
+``` bash
 git clone https://github.com/Jchnc/authing.git
-```
-## Step 2: Install dependencies
-
-```bash
-npm install
+cd authing
+npm ci
+cp .env.example .env
 ```
 
-## Step 3: Configure the environment
+Edit `.env` according to `.env.example`, then:
 
-Create a `.env` file based on the `.env.example` file.
-> **Tip:** You can generate random secrets with `openssl rand -base64 64`
-
-## Step 4: Generate Prisma client and migrate database
-
-```bash
+``` bash
 npx prisma generate
 npx prisma migrate dev
-```
-
-## Step 5: Start the application
-
-```bash
-# Development
 npm run start:dev
-
-# Production
-npm run build
-npm run start:prod
 ```
+> **Important:** Make sure to replace all example values with real configuration settings.  
+> Leaving defaults or placeholders may cause security issues.
 
-## API Documentation
+------------------------------------------------------------------------
 
-Swagger UI available at `http://localhost:3005/api/docs` (development only)
+## Auth Flow Overview
 
-## Custom Decorators
+1.  User logs in → access token (response), refresh token (cookie)
+2.  Client uses access token until it expires
+3.  Client calls `/auth/refresh` → new access + rotated refresh token
+4.  Logout revokes refresh token + clears cookie
+5.  Refresh token reuse detection enables session invalidation
 
-The API provides custom decorators for authentication and authorization:
+------------------------------------------------------------------------
 
-- `@Public()` - Mark endpoints as publicly accessible (bypass JWT authentication)
-- `@Roles(Role.ADMIN, Role.MANAGER)` - Restrict endpoints to specific roles
-- `@CurrentUser()` - Inject authenticated user into controller method parameters
+## Important Endpoints
 
-Example usage:
+-   `POST /auth/register`
+-   `POST /auth/login`
+-   `POST /auth/refresh`
+-   `POST /auth/logout`
+-   `POST /auth/forgot-password`
+-   `POST /auth/reset-password`
+-   `POST /auth/send-verification-email`
+-   `POST /auth/verify-email`
+-   `POST /2fa/send-code`
+-   `POST /2fa/verify-code`
 
-```typescript
-@Public()
-@Post('login')
-async login(@Body() loginDto: LoginDto) {
-  // Public endpoint - no authentication required
-}
+------------------------------------------------------------------------
 
-@Roles(Role.ADMIN)
-@Get('users')
-async getAllUsers() {
-  // Only accessible by ADMIN role
-}
+## Decorators & Guards
 
-@Get('me')
-async getProfile(@CurrentUser() user: User) {
-  // Access authenticated user directly
-  return user;
-}
-```
+### Decorators
 
-## Guards
+- **`@Public()`**  
+  Marks an endpoint as publicly accessible.  
+  Skips authentication entirely
 
-The API uses guards to protect routes and enforce authorization rules:
+- **`@Roles(...roles)`**  
+  Restricts access to specific user roles (e.g., `ADMIN`, `MANAGER`).  
 
-- `JwtAuthGuard` - Global guard that validates JWT tokens on all routes (respects `@Public()` decorator)
-- `RolesGuard` - Enforces role-based access control when `@Roles()` decorator is used
-- `OwnerOrAdminGuard` - Allows access if user is the resource owner OR has ADMIN role
+- **`@CurrentUser()`**  
+  Injects the currently authenticated user into the controller handler.  
+  Provides access to `req.user`, which is populated by the JWT strategy.
 
-Example usage:
+---
 
-```typescript
-@UseGuards(OwnerOrAdminGuard)
-@Patch(':id')
-async updateUser(@Param('id') id: string, @Body() updateDto: UpdateUserDto) {
-  // Only the user themselves or an ADMIN can update
-}
-```
+### Guards
 
-> **Tip:** You can read more about these guards and decorators here: [src/auth/README.md](src/auth/README.md)
+- **`JwtAuthGuard`**  
+  Guard that validates the access token for every request (except routes using `@Public()`).  
+  Attaches the decoded user payload to `req.user`.
 
-## Project Structure
+- **`RolesGuard`**  
+  Enforces role-based access control.  
+  Validates that the user's role matches one of the roles declared in `@Roles()`.
 
-```
-src/
-├── auth/                      # Authentication module
-│   ├── decorators/            # @Public(), @Roles(), @CurrentUser()
-│   ├── guards/                # JWT, Roles, OwnerOrAdmin guards
-│   ├── dto/                   # Auth DTOs
-│   ├── auth.controller.ts
-│   ├── auth.service.ts
-│   └── jwt.strategy.ts
-├── users/                     # User management module
-│   ├── dto/                   # User DTOs
-│   ├── users.controller.ts
-│   └── users.service.ts
-├── config/                    # App configuration
-│   ├── app.config.ts
-│   ├── app-setup.config.ts
-│   └── swagger.config.ts
-├── prisma/                    # Database module
-│   ├── prisma.service.ts
-│   └── prisma.module.ts
-├── common/                    # Shared utilities
-│   ├── filters/               # Exception filters
-│   └── dto/                   # Common DTOs
-├── middleware/                # Request logging
-├── utils/                     # Utility functions
-├── app.module.ts
-├── app.controller.ts
-├── app.service.ts
-└── main.ts
+- **`OwnerOrAdminGuard`**  
+  Allows access only if:  
+  - The authenticated user is the owner of the resource, **or**  
+  - The user has the `ADMIN` role.  
+  Useful for update/delete operations to prevent unauthorized modifications.
 
-prisma/
-├── schema.prisma              # Database schema
-└── migrations/                # Database migrations
-```
+- **`TwoFAGuard`**  
+  Enforces two-factor authentication for users who have 2FA enabled.  
+  If the authenticated user has 2FA active but has not yet completed verification during the current session, all requests to endpoints protected by this guard will be blocked until verification is completed.
+------------------------------------------------------------------------
 
-## Development
-
-```bash
-# Watch mode
-npm run start:dev
-
-# Lint
-npm run lint
-
-# Format
-npm run format
-
-# Generate Prisma client
-npx prisma generate
-```
-
-## Planned Features
+## Planned Features (no specific order)
 
 - [x] Email Verification — Send confirmation link
 - [x] Rate Limiting — Protect endpoints against spamming
@@ -182,3 +135,9 @@ npx prisma generate
 - [ ] Session Management — List & store active refresh tokens per user
 - [ ] Account Lockout — Block user after X amount of failed login attempts
 - [ ] Audit Logs — Track role changes, resets, deletions
+
+------------------------------------------------------------------------
+
+## Contributing
+
+Open issues and PRs are welcome.
