@@ -16,7 +16,6 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Roles } from 'src/auth/decorators/roles.decorator';
-import { OwnerOrAdminGuard } from 'src/auth/guards/owner-or-admin.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import {
@@ -98,7 +97,7 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @UseGuards(OwnerOrAdminGuard)
+  @Roles(Role.ADMIN)
   @SwaggerUpdate()
   async update(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
