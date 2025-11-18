@@ -1,6 +1,6 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Headers, Post, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UserIpThrottlerGuard } from 'src/common/guards/user-ip-throttler.guard';
@@ -28,18 +28,14 @@ export class TwoFAController {
   @SwaggerVerify()
   async verify(
     @CurrentUser() user: { userId: string },
-    @Req() req: Request,
+    @Headers('user-agent') userAgent: string,
     @Res({ passthrough: true }) res: Response,
     @Body() body: VerifyCodeDto,
   ) {
     await this.twofa.verifyCode(user.userId, body.code);
 
     if (body.trustDevice) {
-      const token = await this.twofa.createTrustedDevice(
-        user.userId,
-        req.headers['user-agent'] as string,
-        30,
-      );
+      const token = await this.twofa.createTrustedDevice(user.userId, userAgent, 30);
 
       res.cookie('trustedDevice', token, {
         httpOnly: true,

@@ -39,6 +39,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SendVerificationEmailDto } from './dto/send-verification-email.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { CurrentUser } from './decorators/current-user.decorator';
 
 @ApiTags('auth')
 @UseGuards(JwtAuthGuard, UserIpThrottlerGuard)
@@ -115,20 +116,18 @@ export class AuthController {
 
   @Post('logout')
   @SwaggerLogout()
-  async logout(@Req() req: Request & { user?: { userId: string } }) {
-    const userId = req.user?.userId;
-    if (!userId) {
+  async logout(@CurrentUser() user: { userId: string }) {
+    if (!user.userId) {
       throw new UnauthorizedException();
     }
-    await this.auth.logout(userId);
+    await this.auth.logout(user.userId);
     return { success: true };
   }
 
   @Get('me')
   @UseGuards(TwoFAGuard)
   @SwaggerMe()
-  me(@Req() req: Request & { user?: { sub: string } }) {
-    const user = req.user;
+  me(@CurrentUser() user: { sub: string }) {
     return user;
   }
 
