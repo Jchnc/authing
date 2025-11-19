@@ -23,7 +23,7 @@ import { VerifyEmailResponseDto } from 'src/auth/dto/verify-email-response.dto';
 export function SwaggerLogin() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Login user',
+      summary: '[Public] Login user',
       description:
         'Authenticates user credentials and returns access token. Refresh token is set as httpOnly cookie.',
     }),
@@ -40,7 +40,7 @@ export function SwaggerLogout() {
   return applyDecorators(
     ApiBearerAuth('JWT-auth'),
     ApiOperation({
-      summary: 'Logout user',
+      summary: '[Private] [Admin or Owner] Close own session (logout)',
       description:
         'Invalidates the refresh token for the authenticated user. Requires valid access token.',
     }),
@@ -54,7 +54,7 @@ export function SwaggerLogout() {
 export function SwaggerRegister() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Register a new user',
+      summary: '[Public] Register a new user',
       description:
         'Creates a new user account and returns access token. Refresh token is set as httpOnly cookie.',
     }),
@@ -69,7 +69,7 @@ export function SwaggerRegister() {
 export function SwaggerRefresh() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Refresh access token',
+      summary: '[Public] Refresh access token',
       description:
         'Generates new access and refresh tokens using the refresh token from httpOnly cookie. New refresh token is set as httpOnly cookie.',
     }),
@@ -85,7 +85,7 @@ export function SwaggerMe() {
   return applyDecorators(
     ApiBearerAuth('JWT-auth'),
     ApiOperation({
-      summary: 'Get current user',
+      summary: '[Private] [Admin or Owner] Get current user',
       description:
         'Returns the authenticated user information from the JWT token. Requires valid access token and 2FA verification (if enabled by user).',
     }),
@@ -99,7 +99,7 @@ export function SwaggerMe() {
 export function SwaggerSendVerificationEmail() {
   return applyDecorators(
     ApiOperation({
-      summary: '(Sends email) Send email verification link',
+      summary: '[Public] [Sends Email] Send email verification link',
       description:
         'Sends a verification email to the user with a link to verify their email address. The email contains a link that redirects to the frontend with a JWT token that expires in 1 hour. The frontend should extract the token and call POST /auth/verify-email. This can be used for initial verification or to resend the verification email.',
     }),
@@ -114,7 +114,7 @@ export function SwaggerSendVerificationEmail() {
 export function SwaggerForgotPassword() {
   return applyDecorators(
     ApiOperation({
-      summary: '(Sends email) Request password reset link',
+      summary: '[Public] [Sends Email] Request password reset link',
       description:
         'Sends a password reset email to the user with a link to reset their password. The email contains a link that redirects to the frontend with a JWT token that expires in 1 hour. The frontend should show a password reset form and call POST /auth/reset-password with the token and new password. The token can only be used once.',
     }),
@@ -129,7 +129,7 @@ export function SwaggerForgotPassword() {
 export function SwaggerVerifyEmail() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Verify email with token',
+      summary: '[Public] Verify email with token (token sent via email)',
       description:
         'Verifies a user email address using the JWT token received via email. The frontend extracts the token from the email link and sends it to this endpoint. The token is validated and the user account is marked as verified. This endpoint is called by the frontend after the user clicks the verification link in their email.',
     }),
@@ -144,7 +144,7 @@ export function SwaggerVerifyEmail() {
 export function SwaggerResetPassword() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Reset password with token',
+      summary: '[Public] Reset password with token (token sent via email)',
       description:
         'Resets the user password using the JWT token received via email and the new password. The frontend extracts the token from the email link, shows a password reset form, and sends both the token and new password to this endpoint. The token is validated and can only be used once. After successful reset, all user sessions are invalidated.',
     }),

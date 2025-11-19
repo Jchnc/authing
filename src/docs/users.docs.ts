@@ -18,7 +18,7 @@ import { UserResponseDto } from 'src/users/dto/user-response.dto';
 export function SwaggerCreate() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Create a new user',
+      summary: '[Private] [Admin-Only] Create a new user',
       description: 'Admin-only: Creates a new user account.',
     }),
     ApiCreatedResponse({
@@ -32,7 +32,7 @@ export function SwaggerCreate() {
 export function SwaggerFindAll() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Get all users',
+      summary: '[Private] [Admin-Only] Get all users (paginated)',
       description:
         'Admin-only: Retrieves paginated list of users with optional search and filtering.',
     }),
@@ -81,7 +81,7 @@ export function SwaggerFindAll() {
 export function SwaggerGetCurrentUser() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Get current user profile',
+      summary: '[Private] Get current user profile',
       description: 'Returns the authenticated user profile.',
     }),
     ApiOkResponse({
@@ -93,7 +93,7 @@ export function SwaggerGetCurrentUser() {
 export function SwaggerFindOne() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Get user by ID',
+      summary: '[Private] Get user by ID',
       description: 'View any user profile. Requires authentication.',
     }),
     ApiParam({
@@ -113,41 +113,21 @@ export function SwaggerFindOne() {
 export function SwaggerUpdateCurrentUser() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Update current user profile',
+      summary: '[Private] [Admin or Owner] Update current user profile. Limited to some fields.',
       description: 'Updates the authenticated user profile.',
     }),
     ApiOkResponse({
       description: 'Profile updated successfully',
       type: UserResponseDto,
     }),
+    ApiForbiddenResponse({ description: 'Can only update own profile' }),
     ApiBadRequestResponse({ description: 'Invalid input data' }),
-  );
-}
-export function SwaggerUpdate() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Update user',
-      description: 'Update own profile or admin updating any user. Admin-only.',
-    }),
-    ApiParam({
-      name: 'id',
-      type: String,
-      example: '550e8400-e29b-41d4-a716-446655440000',
-      description: 'User UUID',
-    }),
-    ApiOkResponse({
-      description: 'User updated successfully',
-      type: UserResponseDto,
-    }),
-    ApiBadRequestResponse({ description: 'Invalid input data or UUID format' }),
-    ApiNotFoundResponse({ description: 'User not found' }),
-    ApiForbiddenResponse({ description: 'Can only update own profile unless admin' }),
   );
 }
 export function SwaggerUpdateByAdmin() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Update user by admin',
+      summary: '[Private] [Admin-Only] Update user',
       description:
         'Admin-only: Update any user including system fields like role, isActive, and verified status.',
     }),
@@ -168,7 +148,7 @@ export function SwaggerUpdateByAdmin() {
 export function SwaggerDeleteCurrentUser() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Delete own account',
+      summary: '[Private] [Admin or Owner] Delete own account',
       description: 'Permanently deletes the authenticated user account.',
     }),
     ApiNoContentResponse({ description: 'Account deleted successfully' }),
@@ -177,7 +157,7 @@ export function SwaggerDeleteCurrentUser() {
 export function SwaggerDelete() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Delete user',
+      summary: '[Private] [Admin-Only] Delete user',
       description: 'Admin-only: Permanently deletes any user account.',
     }),
     ApiParam({

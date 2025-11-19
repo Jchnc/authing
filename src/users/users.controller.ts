@@ -36,6 +36,7 @@ import { UpdateUserByAdminDto } from './dto/update-user-by-admin.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UsersService } from './users.service';
+import { OwnerOrAdminGuard } from 'src/auth/guards/owner-or-admin.guard';
 
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')
@@ -89,6 +90,7 @@ export class UsersController {
   }
 
   @Patch('me')
+  @UseGuards(OwnerOrAdminGuard)
   @SwaggerUpdateCurrentUser()
   async updateCurrentUser(
     @CurrentUser() user: { userId: string },
