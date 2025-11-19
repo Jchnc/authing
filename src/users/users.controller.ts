@@ -25,16 +25,17 @@ import {
   SwaggerFindAll,
   SwaggerFindOne,
   SwaggerGetCurrentUser,
-  SwaggerUpdate,
+  SwaggerUpdateByAdmin,
   SwaggerUpdateCurrentUser,
 } from 'src/docs/users.docs';
 import { Role } from 'src/generated/prisma/client';
 import { TwoFAGuard } from 'src/twofa/guards/twofa.guard';
 import { CreateUserDto } from './dto/create-user.dto';
+import { PaginatedUsersResponseDto } from './dto/paginated-users-response.dto';
+import { UpdateUserByAdminDto } from './dto/update-user-by-admin.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UsersService } from './users.service';
-import { PaginatedUsersResponseDto } from './dto/paginated-users-response.dto';
 
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')
@@ -98,12 +99,12 @@ export class UsersController {
 
   @Patch(':id')
   @Roles(Role.ADMIN)
-  @SwaggerUpdate()
+  @SwaggerUpdateByAdmin()
   async update(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
-    @Body() updateUserDto: UpdateUserDto,
+    @Body() updateUserDto: UpdateUserByAdminDto,
   ): Promise<UserResponseDto> {
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.updateByAdmin(id, updateUserDto);
   }
 
   @Delete('me')

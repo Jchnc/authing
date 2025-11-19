@@ -127,7 +127,7 @@ export function SwaggerUpdate() {
   return applyDecorators(
     ApiOperation({
       summary: 'Update user',
-      description: 'Own/Admin: Update own profile or admin updating any user.',
+      description: 'Update own profile or admin updating any user. Admin-only.',
     }),
     ApiParam({
       name: 'id',
@@ -142,6 +142,27 @@ export function SwaggerUpdate() {
     ApiBadRequestResponse({ description: 'Invalid input data or UUID format' }),
     ApiNotFoundResponse({ description: 'User not found' }),
     ApiForbiddenResponse({ description: 'Can only update own profile unless admin' }),
+  );
+}
+export function SwaggerUpdateByAdmin() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Update user by admin',
+      description:
+        'Admin-only: Update any user including system fields like role, isActive, and verified status.',
+    }),
+    ApiParam({
+      name: 'id',
+      type: String,
+      example: '550e8400-e29b-41d4-a716-446655440000',
+      description: 'User UUID',
+    }),
+    ApiOkResponse({
+      description: 'User updated successfully',
+      type: UserResponseDto,
+    }),
+    ApiBadRequestResponse({ description: 'Invalid input data or UUID format' }),
+    ApiNotFoundResponse({ description: 'User not found' }),
   );
 }
 export function SwaggerDeleteCurrentUser() {

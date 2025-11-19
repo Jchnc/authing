@@ -4,9 +4,10 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma, Role } from '../generated/prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserInternalDto } from './dto/update-user-internal.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+import { UpdateUserByAdminDto } from './dto/update-user-by-admin.dto';
 
 @Injectable()
 export class UsersService {
@@ -139,6 +140,37 @@ export class UsersService {
       email: updateUserDto.email?.toLowerCase().trim(),
       firstName: updateUserDto.firstName?.trim(),
       lastName: updateUserDto.lastName?.trim(),
+      ...(passwordToUpdate && { password: passwordToUpdate }),
+    };
+
+    Object.keys(data).forEach((key) => {
+      if (data[key] === undefined) {
+        delete data[key];
+      }
+    });
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data,
+      select: this.userSelectFields,
+    });
+
+    return this.toResponseDto(updatedUser);
+  }
+
+  async updateByAdmin(id: string, updateDto: UpdateUserByAdminDto): Promise<UserResponseDto> {
+    let passwordToUpdate: string | undefined = undefined;
+    if (updateDto.password !== undefined) {
+      passwordToUpdate = await bcrypt.hash(updateDto.password, this.bcryptRounds);
+    }
+
+    const data: Prisma.UserUpdateInput = {
+      email: updateDto.email?.toLowerCase().trim(),
+      firstName: updateDto.firstName?.trim(),
+      lastName: updateDto.lastName?.trim(),
+      role: updateDto.role,
+      isActive: updateDto.isActive,
+      verified: updateDto.verified,
       ...(passwordToUpdate && { password: passwordToUpdate }),
     };
 
