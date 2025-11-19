@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge" />
 </p>
+
 Authentication and user management backend built with **NestJS**, **Prisma**, and **JWT**.
 
 A flexible boilerplate that covers the core authentication flows while allowing you to customize and extend it based on your project’s needs.
