@@ -15,21 +15,22 @@ datasource db {
 }
 
 model User {
-  id                    String    @id @default(uuid())
-  email                 String    @unique
-  password              String
-  firstName             String
-  lastName              String
-  role                  Role      @default(USER)
-  isActive              Boolean   @default(true)
-  verified              Boolean   @default(false)
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  hashedRefreshToken    String?
-  lastLoginAt           DateTime?
-  passwordResetToken    String?
-  passwordResetExpiry   DateTime?
-  twoFactorEnabled      Boolean   @default(false)
+  id                  String            @id @default(uuid())
+  email               String            @unique
+  password            String
+  firstName           String
+  lastName            String
+  role                Role              @default(USER)
+  isActive            Boolean           @default(true)
+  verified            Boolean           @default(false)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  hashedRefreshToken  String?
+  lastLoginAt         DateTime?
+  passwordResetToken  String?
+  passwordResetExpiry DateTime?
+  twoFactorEnabled    Boolean           @default(false)
+  activityLogs        UserActivityLog[]
 }
 
 model TwoFactorCode {
@@ -41,12 +42,27 @@ model TwoFactorCode {
 }
 
 model TrustedDevice {
-  id        String   @id @default(uuid())
-  userId    String 
-  deviceTokenHash  String
-  userAgent  String
+  id              String   @id @default(uuid())
+  userId          String
+  deviceTokenHash String
+  userAgent       String
+  createdAt       DateTime @default(now())
+  expiresAt       DateTime
+}
+
+model UserActivityLog {
+  id     Int    @id @default(autoincrement())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  action    String   @db.VarChar(20)
+  ip        String?  @db.VarChar(45)
+  userAgent String?  @db.VarChar(300)
   createdAt DateTime @default(now())
-  expiresAt DateTime
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([action])
 }
 
 enum Role {

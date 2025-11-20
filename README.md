@@ -129,7 +129,8 @@ npm run start:dev
 - [x] Email Verification — Send confirmation link
 - [x] Rate Limiting — Protect endpoints against spamming
 - [x] 2FA — Two-factor authentication via email (OTP)
-- [ ] Activity Logging — Track login/logout timestamps + IP
+- [x] Activity Logging — Track login/logout timestamps + IP + User Agent
+  - [x] Log maintenance — Purge old logs (currently 30 days threshold)
 - [x] Password Reset — Token-based reset via email
 - [ ] Config Manager — Centralize app settings in DB/config service
 - [ ] Session Management — List & store active refresh tokens per user

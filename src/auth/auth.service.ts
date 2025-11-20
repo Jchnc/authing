@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { MailService } from 'src/mail/mail.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UsersService } from 'src/users/users.service';
+import { ActivityLogService } from './activity-log.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 
@@ -21,6 +22,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
     private readonly mailService: MailService,
+    private readonly ActivityLogService: ActivityLogService,
   ) {
     this.refreshTokenExpiresIn = this.config.get<string>('JWT_REFRESH_EXPIRES_IN', '7d');
     this.jwtAccessExpiresIn = this.config.get<string>('JWT_EXPIRES_IN', '15m');
@@ -46,8 +48,9 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, userAgent: string, ip: string) {
     const user = await this.UsersService.findByEmailWithPassword(dto.email);
+
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -67,6 +70,7 @@ export class AuthService {
 
     await this.saveHashedRefreshToken(user.id, tokens.refreshToken);
     await this.UsersService.updateLastLogin(user.id);
+    await this.ActivityLogService.logActivity(user.id, 'login', ip, userAgent);
 
     return {
       user: {
@@ -81,8 +85,9 @@ export class AuthService {
     };
   }
 
-  async logout(userId: string) {
+  async logout(userId: string, userAgent: string, ip: string) {
     await this.UsersService.updateInternal(userId, { hashedRefreshToken: null });
+    await this.ActivityLogService.logActivity(userId, 'logout', ip, userAgent);
     return { success: true };
   }
 

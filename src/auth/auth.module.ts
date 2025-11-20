@@ -9,6 +9,7 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { MailModule } from 'src/mail/mail.module';
 import { TwoFAModule } from 'src/twofa/twofa.module';
+import { ActivityLogService } from './activity-log.service';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { TwoFAModule } from 'src/twofa/twofa.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, PrismaService, UsersService],
+  providers: [AuthService, JwtStrategy, PrismaService, UsersService, ActivityLogService],
   exports: [AuthService],
 })
 export class AuthModule {}

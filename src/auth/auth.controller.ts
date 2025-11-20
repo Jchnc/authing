@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Ip,
   Post,
   Req,
   Res,
@@ -16,6 +17,7 @@ import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
 import { Throttle, seconds } from '@nestjs/throttler';
 import { Request, Response } from 'express';
+import { UserAgent } from 'src/common/decorators/user-agent.decorator';
 import { UserIpThrottlerGuard } from 'src/common/guards/user-ip-throttler.guard';
 import {
   SwaggerForgotPassword,
@@ -30,6 +32,7 @@ import {
 } from 'src/docs/auth.docs';
 import { TwoFAGuard } from 'src/twofa/guards/twofa.guard';
 import { AuthService } from './auth.service';
+import { CurrentUser } from './decorators/current-user.decorator';
 import { Public } from './decorators/public.decorator';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
@@ -39,7 +42,6 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SendVerificationEmailDto } from './dto/send-verification-email.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { CurrentUser } from './decorators/current-user.decorator';
 
 @ApiTags('auth')
 @UseGuards(JwtAuthGuard, UserIpThrottlerGuard)
@@ -71,8 +73,13 @@ export class AuthController {
   @Public()
   @Post('login')
   @SwaggerLogin()
-  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
-    const { refreshToken, ...response } = await this.auth.login(dto);
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+    @Ip() ip: string,
+    @UserAgent() userAgent: string,
+  ) {
+    const { refreshToken, ...response } = await this.auth.login(dto, userAgent, ip);
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: this.nodeEnv === 'production',
@@ -116,11 +123,15 @@ export class AuthController {
 
   @Post('logout')
   @SwaggerLogout()
-  async logout(@CurrentUser() user: { userId: string }) {
+  async logout(
+    @CurrentUser() user: { userId: string },
+    @Ip() ip: string,
+    @UserAgent() userAgent: string,
+  ) {
     if (!user.userId) {
       throw new UnauthorizedException();
     }
-    await this.auth.logout(user.userId);
+    await this.auth.logout(user.userId, userAgent, ip);
     return { success: true };
   }
 

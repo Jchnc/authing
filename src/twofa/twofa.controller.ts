@@ -1,8 +1,9 @@
-import { Body, Controller, Headers, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { UserAgent } from 'src/common/decorators/user-agent.decorator';
 import { UserIpThrottlerGuard } from 'src/common/guards/user-ip-throttler.guard';
 import { SwaggerSend, SwaggerVerify } from 'src/docs/twofa.docs';
 import { VerifyCodeDto } from './guards/dto/verify-code.dto';
@@ -28,7 +29,7 @@ export class TwoFAController {
   @SwaggerVerify()
   async verify(
     @CurrentUser() user: { userId: string },
-    @Headers('user-agent') userAgent: string,
+    @UserAgent() userAgent: string,
     @Res({ passthrough: true }) res: Response,
     @Body() body: VerifyCodeDto,
   ) {

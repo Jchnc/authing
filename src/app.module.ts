@@ -9,6 +9,8 @@ import { UserIpThrottlerGuard } from './common/guards/user-ip-throttler.guard';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { TwoFAModule } from './twofa/twofa.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { LogMaintenanceModule } from './log-maintenance/log-maintenance.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { TwoFAModule } from './twofa/twofa.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    ScheduleModule.forRoot(),
+    LogMaintenanceModule,
     ThrottlerModule.forRoot({
       errorMessage: (context, throttlerLimitDetail) => {
         const minutes = Math.ceil(throttlerLimitDetail.timeToBlockExpire / 60);
